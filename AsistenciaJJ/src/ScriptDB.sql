@@ -1,0 +1,40 @@
+DROP DATABASE IF EXISTS ControlAsistencia;
+CREATE DATABASE ControlAsistencia
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+USE ControlAsistencia;
+
+CREATE TABLE Rol (
+  id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(50) NOT NULL UNIQUE,
+  descripcion VARCHAR(120) NULL
+) ENGINE=InnoDB;
+
+INSERT INTO Rol (nombre) VALUES ('Empleado'), ('Administrador');
+
+CREATE TABLE Usuario (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  correo VARCHAR(120) NOT NULL UNIQUE,
+  contrasena VARCHAR(255) NOT NULL,
+  rol_id TINYINT UNSIGNED NOT NULL,
+  FOREIGN KEY (rol_id) REFERENCES Rol(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE Asistencia (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT UNSIGNED NOT NULL,
+  fecha DATE NOT NULL,
+  horaEntrada TIME NULL,
+  horaSalida TIME NULL,
+  FOREIGN KEY (usuario_id) REFERENCES Usuario(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE Reporte (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  tipo VARCHAR(50) NOT NULL,
+  fechaGeneracion DATE NOT NULL,
+  administrador_id INT UNSIGNED NOT NULL,
+  FOREIGN KEY (administrador_id) REFERENCES Usuario(id)
+) ENGINE=InnoDB;
+
