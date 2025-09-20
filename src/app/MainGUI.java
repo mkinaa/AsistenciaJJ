@@ -254,9 +254,31 @@ public class MainGUI extends JFrame {
 
                 int option = JOptionPane.showConfirmDialog(dialog, message, "Editar Usuario", JOptionPane.OK_CANCEL_OPTION);
                 if (option == JOptionPane.OK_OPTION) {
-                    Usuario u = new Usuario(id, nombreField.getText(), correoField.getText(),
-                            contrasenaField.getText().isEmpty() ? null : contrasenaField.getText(),
-                            rolBox.getSelectedIndex() + 1);
+                    String nuevoNombre = nombreField.getText();
+                    String nuevoCorreo = correoField.getText();
+                    String nuevaContrasena = contrasenaField.getText();
+                    int nuevoRolId = rolBox.getSelectedIndex() + 1;
+
+                    // VALIDACIONES
+                    if (!nuevoCorreo.matches("^[A-Za-z0-9._%+-]+@gmail\\.com$")) {
+                        JOptionPane.showMessageDialog(dialog,
+                                "El correo debe ser válido y terminar en @gmail.com",
+                                "Error de validación",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    if (nuevoNombre.length() < 2 || nuevoNombre.length() > 50 || nuevoNombre.matches("\\d+")) {
+                        JOptionPane.showMessageDialog(dialog,
+                                "El nombre debe tener entre 2 y 50 caracteres y no puede ser solo números",
+                                "Error de validación",
+                                JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    Usuario u = new Usuario(id, nuevoNombre, nuevoCorreo,
+                            nuevaContrasena.isEmpty() ? null : nuevaContrasena,
+                            nuevoRolId);
 
                     if (usuarioDAO.actualizar(u)) {
                         JOptionPane.showMessageDialog(dialog, "Usuario actualizado.");
@@ -269,6 +291,7 @@ public class MainGUI extends JFrame {
             }
         });
 
+        // Acción Eliminar
         btnEliminar.addActionListener(e -> {
             int fila = table.getSelectedRow();
             if (fila >= 0) {
