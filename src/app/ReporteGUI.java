@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package app;
 
 import dao.ReporteDAO;
@@ -14,6 +10,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.Connection;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ReporteGUI extends JFrame {
@@ -22,6 +20,7 @@ public class ReporteGUI extends JFrame {
     private Usuario admin; // administrador logueado
     private JTable table;
     private DefaultTableModel model;
+    private String tipoReporteActual; // guarda el tipo de reporte seleccionado
 
     public ReporteGUI(Connection con, Usuario admin) {
         this.reporteDAO = new ReporteDAO(con);
@@ -62,12 +61,18 @@ public class ReporteGUI extends JFrame {
 
     private void cargarReporte(String tipo) {
         try {
+            tipoReporteActual = tipo; // guardar tipo actual
+
             List<Object[]> datos;
             switch (tipo) {
-                case "atrasos" -> datos = reporteDAO.obtenerAtrasos();
-                case "salidas" -> datos = reporteDAO.obtenerSalidasAnticipadas();
-                case "inasistencias" -> datos = reporteDAO.obtenerInasistencias();
-                default -> throw new IllegalArgumentException("Tipo desconocido");
+                case "atrasos" ->
+                    datos = reporteDAO.obtenerAtrasos();
+                case "salidas" ->
+                    datos = reporteDAO.obtenerSalidasAnticipadas();
+                case "inasistencias" ->
+                    datos = reporteDAO.obtenerInasistencias();
+                default ->
+                    throw new IllegalArgumentException("Tipo desconocido");
             }
 
             // Limpiar tabla
@@ -89,16 +94,31 @@ public class ReporteGUI extends JFrame {
 
     private void exportarPDF() {
         try {
+            if (tipoReporteActual == null) {
+                JOptionPane.showMessageDialog(this, "Primero genere un reporte para exportar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Fecha y hora más legible
+            String fechaHora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss"));
+
+            // Nombre dinámico del archivo
+            String nombreArchivo = "reporte" + tipoReporteActual.substring(0, 1).toUpperCase()
+                    + tipoReporteActual.substring(1) + "_" + fechaHora + ".pdf";
+
             JFileChooser fileChooser = new JFileChooser();
-fileChooser.setSelectedFile(new java.io.File("reporte.pdf"));
-int option = fileChooser.showSaveDialog(this);
-if(option == JFileChooser.APPROVE_OPTION) {
-    String ruta = fileChooser.getSelectedFile().getAbsolutePath();
-    ReportePDF.exportar("Reporte generado", model, ruta);
-    JOptionPane.showMessageDialog(this, "PDF guardado en: " + ruta);
-}
+            fileChooser.setSelectedFile(new java.io.File(nombreArchivo));
+            int option = fileChooser.showSaveDialog(this);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                String ruta = fileChooser.getSelectedFile().getAbsolutePath();
+                ReportePDF.exportar("Reporte de " + tipoReporteActual, model, ruta);
+                JOptionPane.showMessageDialog(this, "PDF guardado en: " + ruta);
+            }
+
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error al exportar PDF: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
+
 }

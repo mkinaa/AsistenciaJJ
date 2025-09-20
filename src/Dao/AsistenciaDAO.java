@@ -69,6 +69,31 @@ public class AsistenciaDAO {
         }
         return lista;
     }
+
+    // NUEVO: LISTAR por usuario y fecha
+    public List<Asistencia> listarPorUsuarioYFecha(int usuarioId, LocalDate fecha) {
+        List<Asistencia> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Asistencia WHERE usuario_id = ? AND fecha = ?";
+        try (Connection con = Conexion.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, usuarioId);
+            ps.setDate(2, Date.valueOf(fecha));
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                lista.add(new Asistencia(
+                        rs.getLong("id"),
+                        rs.getInt("usuario_id"),
+                        rs.getDate("fecha").toLocalDate(),
+                        rs.getTime("horaEntrada") != null ? rs.getTime("horaEntrada").toLocalTime() : null,
+                        rs.getTime("horaSalida") != null ? rs.getTime("horaSalida").toLocalTime() : null
+                ));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al listar asistencias por fecha: " + e.getMessage());
+        }
+        return lista;
+    }
 }
+
 
 
